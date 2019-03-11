@@ -68,18 +68,7 @@
       207: 'Record Type',
       208: 'Aura Component App'
     };
-    var newNodes = [];
-
-    nodes.forEach(node => {
-      newNodes.push({ id: node.id, label: node.displayName, group: node.objectType, relationImpact: node.relationImpact, level: level[node.relationImpact]})
-    });
-
-    var groups = [];
-    newNodes.forEach(element => {
-      if (!groups.find(g => g === element.group)) {
-        groups.push(element.group);
-      }
-    });
+    
 
     let parentsToChildMap = {};
     let parentsArray = [];
@@ -95,6 +84,20 @@
       childToParentMap[e.to].push(e.from);
       parentsToChildMap[e.from].push(e.to);
     })
+    var newNodes = [];
+
+    nodes.forEach(node => {
+      let length = parentsToChildMap[node.id] ? parentsToChildMap[node.id].length : 1;
+      let size = (length/10) + 10;
+      newNodes.push({ id: node.id, label: node.displayName, group: node.objectType, relationImpact: node.relationImpact, level: level[node.relationImpact], size: size})
+    });
+
+    var groups = [];
+    newNodes.forEach(element => {
+      if (!groups.find(g => g === element.group)) {
+        groups.push(element.group);
+      }
+    });
 
     // create a network
     var container = document.getElementById('mynetwork');
@@ -157,7 +160,9 @@
         }
       },
       interaction: {
-        dragNodes: false,
+        // dragNodes: false,
+        hover: true,
+        navigationButtons:true
       },
       physics: {
         enabled: true,
@@ -229,14 +234,14 @@
           },
           processProperties: function (clusterOptions, childNodes, childEdges) {
             
-            clusterOptions.value = childNodes.length;
+            clusterOptions.size = (childNodes.length/10) + 10;
             // clusterOptions.label = childNodes.length;
-            clusterOptions.borderWidth = 1;
-            clusterOptions.scaling = { label: { enabled: false } };
-            clusterOptions.level = Math.min(...childNodes.map(n => n.level));;
+            // clusterOptions.borderWidth = 1;
+            // clusterOptions.scaling = { label: { enabled: true } };
+            clusterOptions.level = Math.min(...childNodes.map(n => n.level));
             return clusterOptions;
           },
-          clusterNodeProperties: { id: g, borderWidth: 3, shape: 'dot', label: types[g], allowSingleNodeCluster: true, group: g}
+          clusterNodeProperties: { id: g, borderWidth: 5, shape: 'dot',title: types[g], label: types[g], allowSingleNodeCluster: true, group: g, color: {border: 'red'}}
         };
         network.cluster(clusterOptionsByData);
       // })
