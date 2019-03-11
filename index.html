@@ -128,12 +128,14 @@
           middle: { enabled: false, scaleFactor: 1, type: 'arrow' },
           from: { enabled: false, scaleFactor: 1, type: 'arrow' }
         },
+        arrowStrikethrough: false,
         selectionWidth: 1,
         smooth: {
           enabled: true,
+          // "type": "cubicBezier",
           "type": "cubicBezier",
           "forceDirection": "horizontal",
-          //   /"roundness": 0.9
+          // "roundness": 0.5
         }
       },
       layout: {
@@ -163,7 +165,7 @@
           centralGravity: 0.0,
           springLength: 300,
           springConstant: 0.01,
-          nodeDistance: 200,
+          nodeDistance: 100,
           damping: 1//0.09
         },
         solver: 'hierarchicalRepulsion',
@@ -228,8 +230,9 @@
           processProperties: function (clusterOptions, childNodes, childEdges) {
             
             clusterOptions.value = childNodes.length;
+            // clusterOptions.label = childNodes.length;
             clusterOptions.borderWidth = 1;
-            clusterOptions.scaling = { label: { enabled: true } };
+            clusterOptions.scaling = { label: { enabled: false } };
             clusterOptions.level = Math.min(...childNodes.map(n => n.level));;
             return clusterOptions;
           },
