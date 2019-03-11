@@ -1,0 +1,260 @@
+<!doctype html>
+<html>
+
+<head>
+  <title>Network | Circular images</title>
+
+  <style type="text/css">
+    body {
+      font: 10pt arial;
+    }
+
+    #mynetwork {
+      border: 1px solid black;
+      background: white;
+      display: inline-block;
+      height: 100vh;
+      width: 100vw;
+    }
+  </style>
+
+  <script type="text/javascript" src="./vis.js"></script>
+  <script src="./data.js"></script>
+  <link href="./vis-network.min.css" rel="stylesheet" type="text/css" />
+</head>
+
+<div id="mynetwork">
+
+  <script>
+
+
+    var level = {
+      SOURCE: 0,
+      DIRECT_IMPACT_ANALYSIS: 1,
+      INDIRECT_IMPACT_ANALYSIS: 2
+    };
+    var types = {
+      175: 'Profile',
+      176: 'Field',
+      177: 'Dashboard',
+      178: 'Report',
+      179: 'Page Layout',
+      180: 'Approval Process',
+      181: 'Assignment Rule Entry',
+      182: 'Email Template',
+      183: 'Flow',
+      184: 'Validation Rule',
+      185: 'Workflow Email Alert',
+      186: 'Workflow Field Update',
+      187: 'Workflow Outbound Message',
+      188: 'Workflow Rule',
+      189: 'Workflow Task',
+      190: 'Apex Class',
+      191: 'Apex Trigger',
+      192: 'Visual Force Page',
+      193: 'Visual Force Component',
+      194: 'Lightning Page',
+      195: 'Aura Component',
+      196: 'Global Value Set',
+      197: 'Assignment Rule',
+      198: 'Picklist Value',
+      199: 'Global Value Set Value',
+      200: 'Mini Page Layout',
+      201: 'Process Builder',
+      202: 'Object',
+      204: 'Permission Set',
+      205: 'Apex Test Class',
+      206: 'Report Type',
+      207: 'Record Type',
+      208: 'Aura Component App'
+    };
+    var newNodes = [];
+
+    nodes.forEach(node => {
+      newNodes.push({ id: node.id, label: node.displayName, group: node.objectType, relationImpact: node.relationImpact, level: level[node.relationImpact]})
+    });
+
+    var groups = [];
+    newNodes.forEach(element => {
+      if (!groups.find(g => g === element.group)) {
+        groups.push(element.group);
+      }
+    });
+
+    let parentsToChildMap = {};
+    let parentsArray = [];
+    let childToParentMap = {};
+    edges.forEach(e => {
+      if (!parentsToChildMap[e.from]) {
+        parentsToChildMap[e.from] = [];
+        parentsArray.push(e.from);
+      }
+      if (!childToParentMap[e.to]) {
+        childToParentMap[e.to] = [];
+      }
+      childToParentMap[e.to].push(e.from);
+      parentsToChildMap[e.from].push(e.to);
+    })
+
+    // create a network
+    var container = document.getElementById('mynetwork');
+    var data = {
+      nodes: new vis.DataSet(newNodes),
+      edges: edges
+    };
+    var options = {
+      groups: {
+        useDefaultGroups: false
+      },
+      nodes: {
+        borderWidth: 1,
+        size: 10,
+        color: {
+          border: '#222222',
+          background: '#666666'
+        },
+        font: { color: 'black' },
+        heightConstraint: true,
+        shape: 'dot',
+        // chosen :{
+        //   node: true,
+        //   label:true
+        // }
+      },
+      edges: {
+        color: 'lightgray',
+        arrows: {
+          to: { enabled: true, scaleFactor: 1, type: 'arrow' },
+          middle: { enabled: false, scaleFactor: 1, type: 'arrow' },
+          from: { enabled: false, scaleFactor: 1, type: 'arrow' }
+        },
+        selectionWidth: 1,
+        smooth: {
+          enabled: true,
+          "type": "cubicBezier",
+          "forceDirection": "horizontal",
+          //   /"roundness": 0.9
+        }
+      },
+      layout: {
+        randomSeed: 8,
+        // improvedLayout: true,
+        // hierarchical: {
+        //   direction: 'LR',
+        //   sortMethod: 'directed'
+        // }
+        hierarchical: {
+          levelSeparation: 350, //650,
+          nodeSpacing: 100,
+          treeSpacing: 100,
+          blockShifting: true,
+          edgeMinimization: true,
+          parentCentralization: true,
+          direction: 'LR',        // UD, DU, LR, RL
+          sortMethod: 'directed'   // hubsize, directed
+        }
+      },
+      interaction: {
+        dragNodes: false,
+      },
+      physics: {
+        enabled: true,
+        hierarchicalRepulsion: {
+          centralGravity: 0.0,
+          springLength: 300,
+          springConstant: 0.01,
+          nodeDistance: 200,
+          damping: 1//0.09
+        },
+        solver: 'hierarchicalRepulsion',
+        stabilization: {
+          fit: true
+        }
+      }
+      // physics:false,
+      // physics: {
+      //   hierarchicalRepulsion: {
+      //       gravitationalConstant: -26,
+      //       centralGravity: 0.005,
+      //       springLength: 230,
+      //       springConstant: 0.18,
+      //       avoidOverlap: 1.5,
+      //       nodeDistance: 300
+      //   },
+      //   // maxVelocity: 146,
+      //   solver: 'hierarchicalRepulsion',
+      //   timestep: 0.35,
+      //   stabilization: {
+      //       enabled: true,
+      //       // iterations: 100,
+      //       // updateInterval: 25,
+      //       // fit:true
+      //   }
+      // }
+      // physics: {
+      // enabled: false,
+      //   // "barnesHut": {
+      //   //   "centralGravity": 0.35,
+      //   //   "springLength": 255,
+      //   //   "springConstant": 0.055,
+      //   //   "avoidOverlap": 0.43
+      //   // },
+      //   // "minVelocity": 0.75,
+      //   // "solver": "forceAtlas2Based"
+      // }
+      // interaction: {
+      //     //selectConnectedEdges: false
+      // },
+    };
+
+    var network = new vis.Network(container, data, options);
+    network.fit();
+    network.on("selectNode", function (params) {
+      if (params.nodes.length == 1) {
+        if (network.isCluster(params.nodes[0]) == true) {
+          network.openCluster(params.nodes[0]);
+          // network.setOptions(options);
+        }
+      }
+    });
+
+
+    groups.forEach(g => {
+      // ['DIRECT_IMPACT_ANALYSIS', 'INDIRECT_IMPACT_ANALYSIS'].forEach(re => {
+        let clusterOptionsByData = {
+          joinCondition: function (nodeOptions) {
+            return (nodeOptions.group == g ) && nodeOptions.relationImpact != 'SOURCE';
+          },
+          processProperties: function (clusterOptions, childNodes, childEdges) {
+            
+            clusterOptions.value = childNodes.length;
+            clusterOptions.borderWidth = 1;
+            clusterOptions.scaling = { label: { enabled: true } };
+            clusterOptions.level = Math.min(...childNodes.map(n => n.level));;
+            return clusterOptions;
+          },
+          clusterNodeProperties: { id: g, borderWidth: 3, shape: 'dot', label: types[g], allowSingleNodeCluster: true, group: g}
+        };
+        network.cluster(clusterOptionsByData);
+      // })
+
+    });
+
+
+    function clusterChildren(id, children) {
+      if (children.length == 0) return;
+      children.push(id);
+
+      var options = {
+        joinCondition: function (clusterOptions) {
+          return children.indexOf(clusterOptions.id) !== -1;
+        }
+      };
+      network.cluster(options);
+    }
+  </script>
+
+</div>
+</body>
+
+</html>
