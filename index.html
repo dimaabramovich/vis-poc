@@ -225,12 +225,36 @@
       }
     });
 
+    let hoveredNode;
+    network.on("hoverNode", function (params) {
+      if (network.isCluster(params.node) == false) {
+        hoveredNode = params.node;
+      }
+    });
+
+    network.on("oncontext", function (params) {
+      let node = params.nodes.length == 1 ? params.nodes[0] : hoveredNode;
+      if (node && network.isCluster(node) == false) {
+          // params.nodes[0].
+          // network.openCluster(params.nodes[0]);
+          // network.setOptions(options);
+          
+          clusterByType(newNodes.find(n => n.id === node).group);
+          params.event.preventDefault();
+        }
+    });
+
 
     groups.forEach(g => {
       // ['DIRECT_IMPACT_ANALYSIS', 'INDIRECT_IMPACT_ANALYSIS'].forEach(re => {
-        let clusterOptionsByData = {
+        clusterByType(g)
+      // })
+
+    });
+    function clusterByType(type) {
+      let clusterOptionsByData = {
           joinCondition: function (nodeOptions) {
-            return (nodeOptions.group == g ) && nodeOptions.relationImpact != 'SOURCE';
+            return (nodeOptions.group == type ) && nodeOptions.relationImpact != 'SOURCE';
           },
           processProperties: function (clusterOptions, childNodes, childEdges) {
             
@@ -241,12 +265,10 @@
             clusterOptions.level = Math.min(...childNodes.map(n => n.level));
             return clusterOptions;
           },
-          clusterNodeProperties: { id: g, borderWidth: 5, shape: 'dot',title: types[g], label: types[g], allowSingleNodeCluster: true, group: g, color: {border: 'red'}}
+          clusterNodeProperties: { id: type, borderWidth: 5, shape: 'dot',title: types[type], label: types[type], allowSingleNodeCluster: true, group: type, color: {border: 'red'}}
         };
         network.cluster(clusterOptionsByData);
-      // })
-
-    });
+    }
 
 
     function clusterChildren(id, children) {
