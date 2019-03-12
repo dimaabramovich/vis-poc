@@ -227,21 +227,17 @@
 
     let hoveredNode;
     network.on("hoverNode", function (params) {
-      if (network.isCluster(params.node) == false) {
-        hoveredNode = params.node;
-      }
+      hoveredNode = params.node;
     });
 
     network.on("oncontext", function (params) {
-      let node = params.nodes.length == 1 ? params.nodes[0] : hoveredNode;
-      if (node && network.isCluster(node) == false) {
-          // params.nodes[0].
-          // network.openCluster(params.nodes[0]);
-          // network.setOptions(options);
-          
-          clusterByType(newNodes.find(n => n.id === node).group);
+      if (hoveredNode){
+        let selectedNode = newNodes.find(n => n.id === hoveredNode);
+        if (selectedNode && selectedNode.relationImpact != 'SOURCE' && network.isCluster(hoveredNode) == false) {
+          clusterByType(selectedNode.group);
           params.event.preventDefault();
         }
+      }
     });
 
 
