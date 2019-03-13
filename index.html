@@ -88,7 +88,7 @@
 
     nodes.forEach(node => {
       let length = parentsToChildMap[node.id] ? parentsToChildMap[node.id].length : 1;
-      let size = (length/10) + 10;
+      let size = scaleFactor(length); //(length/10) + 50;
       newNodes.push({ id: node.id, label: node.displayName, group: node.objectType, relationImpact: node.relationImpact, level: level[node.relationImpact], size: size})
     });
 
@@ -116,7 +116,7 @@
           border: '#222222',
           background: '#666666'
         },
-        font: { color: 'black', align: 'left', background: 'white', vadjust: -5, multi: true },
+        font: { color: 'black', background: 'white' },
         heightConstraint: true,
         shape: 'dot',
         // chosen :{
@@ -136,13 +136,13 @@
         selectionWidth: 1,
         smooth: {
           enabled: true,
-          // "type": "cubicBezier",
-          // "type": "curvedCW",
-          // "forceDirection": "vertical",
-          // "roundness": 0.2
-
           "type": "cubicBezier",
+          // "type": "curvedCW",
           "forceDirection": "horizontal",
+          // "roundness": 0.08
+
+          // "type": "cubicBezier",
+          // "forceDirection": "horizontal",
         }
       },
       layout: {
@@ -258,16 +258,34 @@
           },
           processProperties: function (clusterOptions, childNodes, childEdges) {
             
-            clusterOptions.size = (childNodes.length/10) + 10;
+            clusterOptions.size = scaleFactor(childNodes.length);
             // clusterOptions.label = childNodes.length;
             // clusterOptions.borderWidth = 1;
             // clusterOptions.scaling = { label: { enabled: true } };
             clusterOptions.level = Math.min(...childNodes.map(n => n.level));
             return clusterOptions;
           },
-          clusterNodeProperties: { id: type, borderWidth: 5, shape: 'dot',title: types[type], label: types[type], allowSingleNodeCluster: true, group: type, color: {border: 'red'}}
+          clusterNodeProperties: { id: type, borderWidth: 5, shape: 'dot', label: types[type], allowSingleNodeCluster: true, group: type}
         };
         network.cluster(clusterOptionsByData);
+    }
+
+    function scaleFactor(value){
+      let factors = [{
+        calc: v => v >= 1 &&  v < 10,
+        value: 10
+      },{
+        calc: v => v >= 10 &&  v < 100,
+        value: 30
+      },{
+        calc: v => v >= 100 &&  v < 500,
+        value: 50
+      },{
+        calc: v => v >= 500,
+        value: 100
+      }];
+
+      return factors.find(f => f.calc(value)).value;
     }
 
 
