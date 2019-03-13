@@ -19,7 +19,7 @@
   </style>
 
   <script type="text/javascript" src="./vis.js"></script>
-  <script src="./data.js"></script>
+  <script src="./data-1.js"></script>
   <link href="./vis-network.min.css" rel="stylesheet" type="text/css" />
 </head>
 
@@ -116,7 +116,7 @@
           border: '#222222',
           background: '#666666'
         },
-        font: { color: 'black' },
+        font: { color: 'black', align: 'left', background: 'white', vadjust: -5, multi: true },
         heightConstraint: true,
         shape: 'dot',
         // chosen :{
@@ -131,14 +131,18 @@
           middle: { enabled: false, scaleFactor: 1, type: 'arrow' },
           from: { enabled: false, scaleFactor: 1, type: 'arrow' }
         },
+        // physics: true,
         arrowStrikethrough: false,
         selectionWidth: 1,
         smooth: {
           enabled: true,
           // "type": "cubicBezier",
+          // "type": "curvedCW",
+          // "forceDirection": "vertical",
+          // "roundness": 0.2
+
           "type": "cubicBezier",
           "forceDirection": "horizontal",
-          // "roundness": 0.5
         }
       },
       layout: {
@@ -167,7 +171,7 @@
       physics: {
         enabled: true,
         hierarchicalRepulsion: {
-          centralGravity: 0.0,
+          centralGravity: 0.5,
           springLength: 300,
           springConstant: 0.01,
           nodeDistance: 200,
@@ -175,7 +179,8 @@
         },
         solver: 'hierarchicalRepulsion',
         stabilization: {
-          fit: true
+          fit: true,
+          onlyDynamicEdges: true
         }
       }
       // physics:false,
@@ -220,7 +225,6 @@
       if (params.nodes.length == 1) {
         if (network.isCluster(params.nodes[0]) == true) {
           network.openCluster(params.nodes[0]);
-          // network.setOptions(options);
         }
       }
     });
