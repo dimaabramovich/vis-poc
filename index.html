@@ -89,7 +89,8 @@
     nodes.forEach(node => {
       let length = parentsToChildMap[node.id] ? parentsToChildMap[node.id].length : 1;
       let size = scaleFactor(length); //(length/10) + 50;
-      newNodes.push({ id: node.id, label: node.displayName, group: node.objectType, relationImpact: node.relationImpact, level: level[node.relationImpact], size: size})
+      let isVisible = parentsToChildMap[50476660].find(n => n === node.id) || node.id === 50476660;
+      newNodes.push({ id: node.id, label: node.displayName, group: node.objectType, relationImpact: node.relationImpact, size: size, hidden: !isVisible})
     });
 
     var groups = [];
@@ -129,7 +130,7 @@
         arrows: {
           to: { enabled: true, scaleFactor: 1, type: 'arrow' },
           middle: { enabled: false, scaleFactor: 1, type: 'arrow' },
-          from: { enabled: false, scaleFactor: 1, type: 'arrow' }
+          from: { enabled: false, scaleFactor: 1, type: 'circle' }
         },
         // physics: true,
         arrowStrikethrough: false,
@@ -147,11 +148,6 @@
       },
       layout: {
         randomSeed: 8,
-        // improvedLayout: true,
-        // hierarchical: {
-        //   direction: 'LR',
-        //   sortMethod: 'directed'
-        // }
         hierarchical: {
           levelSeparation: 350, //650,
           nodeSpacing: 100,
@@ -183,40 +179,6 @@
           onlyDynamicEdges: true
         }
       }
-      // physics:false,
-      // physics: {
-      //   hierarchicalRepulsion: {
-      //       gravitationalConstant: -26,
-      //       centralGravity: 0.005,
-      //       springLength: 230,
-      //       springConstant: 0.18,
-      //       avoidOverlap: 1.5,
-      //       nodeDistance: 300
-      //   },
-      //   // maxVelocity: 146,
-      //   solver: 'hierarchicalRepulsion',
-      //   timestep: 0.35,
-      //   stabilization: {
-      //       enabled: true,
-      //       // iterations: 100,
-      //       // updateInterval: 25,
-      //       // fit:true
-      //   }
-      // }
-      // physics: {
-      // enabled: false,
-      //   // "barnesHut": {
-      //   //   "centralGravity": 0.35,
-      //   //   "springLength": 255,
-      //   //   "springConstant": 0.055,
-      //   //   "avoidOverlap": 0.43
-      //   // },
-      //   // "minVelocity": 0.75,
-      //   // "solver": "forceAtlas2Based"
-      // }
-      // interaction: {
-      //     //selectConnectedEdges: false
-      // },
     };
 
     var network = new vis.Network(container, data, options);
@@ -243,14 +205,32 @@
         }
       }
     });
+    //selectNode
 
-
-    groups.forEach(g => {
-      // ['DIRECT_IMPACT_ANALYSIS', 'INDIRECT_IMPACT_ANALYSIS'].forEach(re => {
-        clusterByType(g)
-      // })
-
+    network.on("selectNode", function (params) {
+      let children = parentsToChildMap[params.nodes[0]];
+      if (children) {
+        children.forEach(c => {
+        // data.nodes.get(c).hidden = false;
+        data.nodes.update({ id: c, hidden: false})
+      })
+      network.stabilize();
+      }
+      // if (hoveredNode){
+      //   let selectedNode = newNodes.find(n => n.id === hoveredNode);
+      //   if (selectedNode && selectedNode.relationImpact != 'SOURCE' && network.isCluster(hoveredNode) == false) {
+      //     // clusterByType(selectedNode.group);
+      //     // params.event.preventDefault();
+      //   }
+      // }
     });
+
+    // groups.forEach(g => {
+    //   // ['DIRECT_IMPACT_ANALYSIS', 'INDIRECT_IMPACT_ANALYSIS'].forEach(re => {
+    //     clusterByType(g)
+    //   // })
+
+    // });
     function clusterByType(type) {
       let clusterOptionsByData = {
           joinCondition: function (nodeOptions) {
