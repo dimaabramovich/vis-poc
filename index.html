@@ -19,7 +19,7 @@
   </style>
 
   <script type="text/javascript" src="./vis.js"></script>
-  <script src="./data-1.js"></script>
+  <script src="./data-2.js"></script>
   <link href="./vis-network.min.css" rel="stylesheet" type="text/css" />
 </head>
 
@@ -85,12 +85,14 @@
       parentsToChildMap[e.from].push(e.to);
     })
     var newNodes = [];
+    var sourceNode = nodes.find(n => n.relationImpact === "SOURCE");
 
     nodes.forEach(node => {
       let length = parentsToChildMap[node.id] ? parentsToChildMap[node.id].length : 1;
       let size = scaleFactor(length); //(length/10) + 50;
-      let isVisible = parentsToChildMap[50476660].find(n => n === node.id) || node.id === 50476660;
-      newNodes.push({ id: node.id, label: node.displayName, group: node.objectType, relationImpact: node.relationImpact, size: size, hidden: !isVisible})
+      let isVisible = parentsToChildMap[sourceNode.id].find(n => n === node.id) || node.relationImpact === "SOURCE";
+      //newNodes.push({ id: node.id, label: node.displayName, group: node.objectType, relationImpact: node.relationImpact, size: size, hidden: !isVisible})
+      newNodes.push({ id: node.id, label: node.displayName, group: node.objectType, relationImpact: node.relationImpact, level: level[node.relationImpact], size: size, hidden: !isVisible})
     });
 
     var groups = [];
@@ -183,38 +185,41 @@
 
     var network = new vis.Network(container, data, options);
     network.fit();
-    network.on("selectNode", function (params) {
-      if (params.nodes.length == 1) {
-        if (network.isCluster(params.nodes[0]) == true) {
-          network.openCluster(params.nodes[0]);
-        }
-      }
-    });
+    network.stabilize();
+    // network.on("selectNode", function (params) {
+    //   if (params.nodes.length == 1) {
+    //     if (network.isCluster(params.nodes[0]) == true) {
+    //       network.openCluster(params.nodes[0]);
+    //     }
+    //   }
+    // });
 
-    let hoveredNode;
-    network.on("hoverNode", function (params) {
-      hoveredNode = params.node;
-    });
+    // let hoveredNode;
+    // network.on("hoverNode", function (params) {
+    //   hoveredNode = params.node;
+    // });
 
-    network.on("oncontext", function (params) {
-      if (hoveredNode){
-        let selectedNode = newNodes.find(n => n.id === hoveredNode);
-        if (selectedNode && selectedNode.relationImpact != 'SOURCE' && network.isCluster(hoveredNode) == false) {
-          clusterByType(selectedNode.group);
-          params.event.preventDefault();
-        }
-      }
-    });
+    // network.on("oncontext", function (params) {
+    //   if (hoveredNode){
+    //     let selectedNode = newNodes.find(n => n.id === hoveredNode);
+    //     if (selectedNode && selectedNode.relationImpact != 'SOURCE' && network.isCluster(hoveredNode) == false) {
+    //       clusterByType(selectedNode.group);
+    //       params.event.preventDefault();
+    //     }
+    //   }
+    // });
     //selectNode
 
+    let openedNodeMap = {};
     network.on("selectNode", function (params) {
       let children = parentsToChildMap[params.nodes[0]];
       if (children) {
-        children.forEach(c => {
-        // data.nodes.get(c).hidden = false;
-        data.nodes.update({ id: c, hidden: false})
-      })
-      network.stabilize();
+          children.forEach(c => {
+          // data.nodes.get(c).hidden = false;
+          data.nodes.update({ id: c, hidden: !!openedNodeMap[params.nodes[0]]});
+        })
+        openedNodeMap[params.nodes[0]] = !openedNodeMap[params.nodes[0]];
+        network.stabilize();
       }
       // if (hoveredNode){
       //   let selectedNode = newNodes.find(n => n.id === hoveredNode);
