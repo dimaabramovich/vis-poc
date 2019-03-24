@@ -112,15 +112,25 @@
     var newNodes = [];
     var sourceNode = nodes.find(n => n.relationImpact === "SOURCE");
 
+    let nodesMap = nodes.reduce((m, n) => {m[n.id] = n; return m;}, {});
+    edges.forEach(e => {
+      let from = nodesMap[e.from];
+      let to = nodesMap[e.to];
+
+      if (from.relationImpact == to.relationImpact){
+        // e.smooth = {type: 'curvedCW', roundness: 0.2}
+      }
+    })
+
     nodes.forEach(node => {
       let length = parentsToChildMap[node.id] ? parentsToChildMap[node.id].length : 1;
       let size = scaleFactor(length); //(length/10) + 50;
-      let isVisible = parentsToChildMap[sourceNode.id].find(n => n === node.id) || node.relationImpact === "SOURCE";
+      let isVisible = true;//parentsToChildMap[sourceNode.id].find(n => n === node.id) || node.relationImpact === "SOURCE";
       //newNodes.push({ id: node.id, label: node.displayName, group: node.objectType, relationImpact: node.relationImpact, size: size, hidden: !isVisible})
       //level: level[node.relationImpact]
-      let borderWidth = ((parentsToChildMap[node.id] && parentsToChildMap[node.id].length > 0) ? '4' : '1');
-      let bordercolor = ((parentsToChildMap[node.id] && parentsToChildMap[node.id].length > 0) ? 'black' : '#222222');
-      newNodes.push({ id: node.id, label: node.displayName, group: node.objectType, relationImpact: node.relationImpact, level: level[node.relationImpact], hidden: !isVisible, borderWidth: borderWidth, color: {border: bordercolor}});
+      // let borderWidth = ((parentsToChildMap[node.id] && parentsToChildMap[node.id].length > 0) ? '4' : '1');
+      // let bordercolor = ((parentsToChildMap[node.id] && parentsToChildMap[node.id].length > 0) ? 'black' : '#222222');
+      newNodes.push({ id: node.id, text: node.displayName, group: node.objectType, relationImpact: node.relationImpact, level: level[node.relationImpact], hidden: !isVisible});
       // newNodes.push({ id: node.id, label: node.displayName, group: node.objectType, relationImpact: node.relationImpact, level: level[node.relationImpact], hidden: !isVisible})
     });
 
@@ -139,76 +149,79 @@
     };
     var options = {
       groups: {
-        useDefaultGroups: false
+        useDefaultGroups: true
       },
       nodes: {
         borderWidth: 1,
         size: 10,
         color: {
-          // border: '#222222',
+          border: '#222222',
           background: '#666666'
         },
-        // font: { color: 'black', background: 'white' },
+        font: { color: 'black', background: 'white' },
         heightConstraint: true,
-        // shape: 'dot',
-        shape: 'box',
+        shape: 'dot',
+        // shape: 'box',
         // chosen :{
         //   node: true,
         //   label:true
         // }
       },
       edges: {
-        color: 'lightgray',
+        color: {
+          color: "lightgray",
+          highlight:"lightblue",
+          hover:"lightblue"
+        },
         arrows: {
           to: { enabled: true, scaleFactor: 1, type: 'arrow' },
           middle: { enabled: false, scaleFactor: 1, type: 'arrow' },
           from: { enabled: false, scaleFactor: 1, type: 'circle' }
         },
-        // physics: true,
         arrowStrikethrough: false,
-        selectionWidth: 1,
+        selectionWidth: 3,
         smooth: {
           enabled: true,
-          "type": "cubicBezier",
-          // "type": "curvedCW",
-          "forceDirection": "horizontal",
-          // "roundness": 0.08
-
-          // "type": "cubicBezier",
-          // "forceDirection": "horizontal",
-        }
+          type: "cubicBezier",
+          forceDirection: "horizontal",
+        },
       },
       layout: {
         randomSeed: 8,
         hierarchical: {
-          levelSeparation: 350, //650,
-          nodeSpacing: 40,
-          treeSpacing: 50,
+          levelSeparation: 450, //650,
+          nodeSpacing: 10,
+          // treeSpacing: 500,
           blockShifting: true,
-          edgeMinimization: true,
-          parentCentralization: true,
+          edgeMinimization: false,
+          parentCentralization: false,
           direction: 'LR',        // UD, DU, LR, RL
-          sortMethod: 'directed'   // hubsize, directed
+          sortMethod: 'hubsize'   // hubsize, directed
         }
       },
       interaction: {
         dragNodes: false,
         hover: true,
-        navigationButtons:true
+        selectable:true,
+        selectConnectedEdges: false
       },
       physics: {
         enabled: true,
-        hierarchicalRepulsion: {
-          centralGravity: 0.5,
-          springLength: 50,
-          springConstant: 0.1,
-          nodeDistance: 50,
-          damping: 0.1
+        // hierarchicalRepulsion: {
+        //   centralGravity: 0.5,
+        //   springLength: 100,
+        //   springConstant: 0.1,
+        //   nodeDistance: 50,
+        //   damping: 0.1
+        // },
+        // hierarchicalRepulsion: {},
+        forceAtlas2Based: {
+          avoidOverlap: 1
         },
-        solver: 'hierarchicalRepulsion',
+        solver: 'forceAtlas2Based',
         stabilization: {
           fit: true,
-          onlyDynamicEdges: true
+          // onlyDynamicEdges: true
         }
       }
     };
@@ -216,41 +229,58 @@
     var network = new vis.Network(container, data, options);
     network.fit();
     network.stabilize();
-    // network.on("selectNode", function (params) {
-    //   if (params.nodes.length == 1) {
-    //     if (network.isCluster(params.nodes[0]) == true) {
-    //       network.openCluster(params.nodes[0]);
-    //     }
-    //   }
-    // });
 
-    // let hoveredNode;
-    // network.on("hoverNode", function (params) {
-    //   hoveredNode = params.node;
-    // });
 
-    // network.on("oncontext", function (params) {
-    //   if (hoveredNode){
-    //     let selectedNode = newNodes.find(n => n.id === hoveredNode);
-    //     if (selectedNode && selectedNode.relationImpact != 'SOURCE' && network.isCluster(hoveredNode) == false) {
-    //       clusterByType(selectedNode.group);
-    //       params.event.preventDefault();
-    //     }
-    //   }
-    // });
-    //selectNode
+    network.on("afterDrawing", function (ctx) {
+
+      data.nodes.get({
+        filter: (item) => !item.hidden,
+      }).forEach(n => {
+        let position = network.getPositions([n.id]);
+        
+        // ctx.clearRect(n.text,position[n.id].x + 20, position[n.id].y -4, 10, 50)
+        // ctx.fillStyle = '#A6D5F7';
+        // ctx.circle(n.text,position[n.id].x + 10, position[n.id].y, 20);
+        // ctx.fill();
+        ctx.fillStyle = "black";
+        ctx.font = "sans-serif";
+        ctx.fillText(n.text,position[n.id].x + 20, position[n.id].y -4);
+        
+      })
+      // newNodes.forEach(n => {
+      //   var nodePosition = network.getPositions([n.id]);
+
+      //   // ctx.fillStyle = "white";
+      //   // ctx.fillRect(nodePosition[n.id].x, nodePosition[n.id].y, 10, 200);
+      // // draw font in red
+      //   // ctx.fillStyle = "red";
+      //   // ctx.font = "20pt sans-serif";
+      //   // ctx.fillText(n.text,nodePosition[nodeId].x + 2, nodePosition[nodeId].y +2);
+      //   ctx.strokeText(n.text,nodePosition[n.id].x + 2, nodePosition[n.id].y +2);
+      // // ctx.strokeStyle = '#294475';
+      // // ctx.lineWidth = 4;
+      // // ctx.fillStyle = '#A6D5F7';
+      // // ctx.rect(nodePosition[nodeId].x, nodePosition[nodeId].y,20);
+      // // ctx.fill();
+      // // ctx.stroke();
+      // })
+      
+  });
 
     let openedNodeMap = {};
-    network.on("selectNode", function (params) {
-      let children = parentsToChildMap[params.nodes[0]];
-      if (children) {
-          children.forEach(c => {
-          // data.nodes.get(c).hidden = false;
-          data.nodes.update({ id: c, hidden: !!openedNodeMap[params.nodes[0]]});
-        })
-        openedNodeMap[params.nodes[0]] = !openedNodeMap[params.nodes[0]];
-        network.stabilize();
+    network.on("click", function (params) {
+        if (params.nodes.length > 0){
+          let children = parentsToChildMap[params.nodes[0]];
+        if (children) {
+            children.forEach(c => {
+            // data.nodes.get(c).hidden = false;
+            data.nodes.update({ id: c, hidden: !!openedNodeMap[params.nodes[0]]});
+          })
+          openedNodeMap[params.nodes[0]] = !openedNodeMap[params.nodes[0]];
+          network.stabilize();
+        }
       }
+      
       // if (hoveredNode){
       //   let selectedNode = newNodes.find(n => n.id === hoveredNode);
       //   if (selectedNode && selectedNode.relationImpact != 'SOURCE' && network.isCluster(hoveredNode) == false) {
@@ -266,24 +296,24 @@
     //   // })
 
     // });
-    function clusterByType(type) {
-      let clusterOptionsByData = {
-          joinCondition: function (nodeOptions) {
-            return (nodeOptions.group == type ) && nodeOptions.relationImpact != 'SOURCE';
-          },
-          processProperties: function (clusterOptions, childNodes, childEdges) {
+    // function clusterByType(type) {
+    //   let clusterOptionsByData = {
+    //       joinCondition: function (nodeOptions) {
+    //         return (nodeOptions.group == type ) && nodeOptions.relationImpact != 'SOURCE';
+    //       },
+    //       processProperties: function (clusterOptions, childNodes, childEdges) {
             
-            clusterOptions.size = scaleFactor(childNodes.length);
-            // clusterOptions.label = childNodes.length;
-            // clusterOptions.borderWidth = 1;
-            // clusterOptions.scaling = { label: { enabled: true } };
-            clusterOptions.level = Math.min(...childNodes.map(n => n.level));
-            return clusterOptions;
-          },
-          clusterNodeProperties: { id: type, borderWidth: 5, shape: 'dot', label: types[type], allowSingleNodeCluster: true, group: type}
-        };
-        network.cluster(clusterOptionsByData);
-    }
+    //         clusterOptions.size = scaleFactor(childNodes.length);
+    //         // clusterOptions.label = childNodes.length;
+    //         // clusterOptions.borderWidth = 1;
+    //         // clusterOptions.scaling = { label: { enabled: true } };
+    //         clusterOptions.level = Math.min(...childNodes.map(n => n.level));
+    //         return clusterOptions;
+    //       },
+    //       clusterNodeProperties: { id: type, borderWidth: 5, shape: 'dot', label: types[type], allowSingleNodeCluster: true, group: type}
+    //     };
+    //     network.cluster(clusterOptionsByData);
+    // }
 
     function scaleFactor(value){
       let factors = [{
@@ -303,18 +333,6 @@
       return factors.find(f => f.calc(value)).value;
     }
 
-
-    function clusterChildren(id, children) {
-      if (children.length == 0) return;
-      children.push(id);
-
-      var options = {
-        joinCondition: function (clusterOptions) {
-          return children.indexOf(clusterOptions.id) !== -1;
-        }
-      };
-      network.cluster(options);
-    }
   </script>
 
 </div>
