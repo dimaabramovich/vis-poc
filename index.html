@@ -120,8 +120,8 @@
       let from = nodesMap[e.from];
       let to = nodesMap[e.to];
 
-      if (from.relationImpact == to.relationImpact) {
-        // e.smooth = {type: 'curvedCW', roundness: 0.2}
+      if (from.level == to.level) {
+        e.smooth = {type: 'curvedCW', roundness: 0.4}
       }
     })
 
