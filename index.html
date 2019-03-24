@@ -195,7 +195,7 @@
         dragNodes: false,
         hover: true,
         selectable: true,
-        selectConnectedEdges: false
+        selectConnectedEdges: true
       },
       physics: {
         enabled: true,
@@ -261,17 +261,17 @@
 
     let openedNodeMap = {};
     network.on("click", function (params) {
-      if (params.nodes.length > 0) {
-        let children = parentsToChildMap[params.nodes[0]];
-        if (children) {
-          children.forEach(c => {
-            // data.nodes.get(c).hidden = false;
-            data.nodes.update({ id: c, hidden: !!openedNodeMap[params.nodes[0]] });
-          })
-          openedNodeMap[params.nodes[0]] = !openedNodeMap[params.nodes[0]];
-          network.stabilize();
-        }
-      }
+      // if (params.nodes.length > 0) {
+      //   let children = parentsToChildMap[params.nodes[0]];
+      //   if (children) {
+      //     children.forEach(c => {
+      //       // data.nodes.get(c).hidden = false;
+      //       data.nodes.update({ id: c, hidden: !!openedNodeMap[params.nodes[0]] });
+      //     })
+      //     openedNodeMap[params.nodes[0]] = !openedNodeMap[params.nodes[0]];
+      //     network.stabilize();
+      //   }
+      // }
 
       // if (hoveredNode){
       //   let selectedNode = newNodes.find(n => n.id === hoveredNode);
