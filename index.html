@@ -258,6 +258,7 @@
 
       network.on("selectNode", function (params) {
         if (params.nodes.length > 0) {
+          network.unselectAll();
 
           let parentsArray = [params.nodes[0]];
           let colectedEdges = [];
@@ -268,11 +269,13 @@
             if (parents) {
               parents.forEach(p => {
                 if (!parentsArray.includes(p)) {
-                  let edge = edges.find(e => e.from === p && e.to === child);
-                  colectedEdges.push(edge.id);
                   if (child !== p){
                     parentsArray.push(p);
                   }
+                }
+                let edge = edges.find(e => e.from === p && e.to === child);
+                if (!colectedEdges.includes(edge.id)) {
+                  colectedEdges.push(edge.id);
                 }
               });
             }
