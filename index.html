@@ -270,7 +270,9 @@
                 if (!parentsArray.includes(p)) {
                   let edge = edges.find(e => e.from === p && e.to === child);
                   colectedEdges.push(edge.id);
-                  parentsArray.push(p)
+                  if (child !== p){
+                    parentsArray.push(p);
+                  }
                 }
               });
             }
