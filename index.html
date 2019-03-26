@@ -79,12 +79,10 @@
 
 
     let parentsToChildMap = {};
-    let parentsArray = [];
     let childToParentMap = {};
     edges.forEach(e => {
       if (!parentsToChildMap[e.from]) {
         parentsToChildMap[e.from] = [];
-        parentsArray.push(e.from);
       }
       if (!childToParentMap[e.to]) {
         childToParentMap[e.to] = [];
@@ -116,7 +114,8 @@
     }
 
 
-    edges.forEach(e => {
+    edges.forEach((e, i) => {
+      e.id = i;
       let from = nodesMap[e.from];
       let to = nodesMap[e.to];
 
@@ -143,7 +142,7 @@
     var container = document.getElementById('mynetwork');
     var data = {
       nodes: new vis.DataSet(data),
-      edges: edges
+      edges: new vis.DataSet(edges)
     };
     var options = {
       groups: {
@@ -184,11 +183,11 @@
         hierarchical: {
           levelSeparation: 450, //650,
           // nodeSpacing: 10,
-          blockShifting: true,
+          blockShifting: false,
           edgeMinimization: true,
           parentCentralization: false,
           direction: 'LR',        // UD, DU, LR, RL
-          sortMethod: 'directed'   // hubsize, directed
+          sortMethod: 'hubsize'   // hubsize, directed
         }
       },
       interaction: {
@@ -199,18 +198,16 @@
       },
       physics: {
         enabled: true,
-        // hierarchicalRepulsion: {
-        //   centralGravity: 0.5,
-        //   springLength: 100,
-        //   springConstant: 0.1,
-        //   nodeDistance: 50,
-        //   damping: 0.1
-        // },
-        // hierarchicalRepulsion: {},
-        forceAtlas2Based: {
-          avoidOverlap: 1
+        hierarchicalRepulsion: {
+          centralGravity: 0.5,
+          springLength: 100,
+          springConstant: 0.5,
+          // nodeDistance: 50,
+          // damping: 0.1
         },
-        solver: 'forceAtlas2Based',
+        hierarchicalRepulsion: {},
+        
+        solver: 'hierarchicalRepulsion',
         stabilization: {
           fit: true,
           // onlyDynamicEdges: true
@@ -259,8 +256,51 @@
 
     });
 
+      network.on("selectNode", function (params) {
+        if (params.nodes.length > 0) {
+
+          let parentsArray = [params.nodes[0]];
+          let colectedEdges = [];
+
+          while (parentsArray.length > 0) {
+            let child = parentsArray.pop();
+            let parents = childToParentMap[child];
+            if (parents) {
+              parents.forEach(p => {
+                if (!parentsArray.includes(p)) {
+                  let edge = edges.find(e => e.from === p && e.to === child);
+                  colectedEdges.push(edge.id);
+                  parentsArray.push(p)
+                }
+              });
+            }
+          }
+
+          let childrenArray = [params.nodes[0]];
+          while (childrenArray.length > 0) {
+            let parent = childrenArray.pop();
+            let childrens = parentsToChildMap[parent];
+            if (childrens) {
+              childrens.forEach(c => {
+                if (!childrenArray.includes(c)) {
+                  let edge = edges.find(e => e.from === parent && e.to === c);
+                  colectedEdges.push(edge.id);
+                  if(c !== parent) {
+                    childrenArray.push(c);
+                  }
+                }
+              });
+            }
+          }
+          
+          network.selectEdges(colectedEdges);
+        }
+      });
+
     let openedNodeMap = {};
     network.on("click", function (params) {
+      if (params.nodes.length > 0) {
+      }
       // if (params.nodes.length > 0) {
       //   let children = parentsToChildMap[params.nodes[0]];
       //   if (children) {
