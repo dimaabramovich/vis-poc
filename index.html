@@ -91,13 +91,6 @@
       parentsToChildMap[e.calleeId].push(e.callerId);
     })
 
-    var data = nodes.map(node => {
-      let length = parentsToChildMap[node.id] ? parentsToChildMap[node.id].length : 1;
-      let isVisible = true; //parentsToChildMap[sourceNode.id].find(n => n === node.id) || node.relationImpact === "SOURCE";
-      // return { id: node.id, text: node.displayName, group: node.objectType, relationImpact: node.relationImpact, level: level[node.relationImpact], hidden: !isVisible };
-      return{ id: node.id, text: node.displayName, group: node.objectType, relationImpact: node.relationImpact, level: node.level, hidden: !isVisible};
-    });
-
     let nodesMap = nodes.reduce((m, n) => { m[n.id] = n; return m; }, {});
 
     var sourceNode = nodes.find(n => n.relationImpact === "SOURCE");
@@ -130,6 +123,13 @@
         e.smooth = {type: 'curvedCW', roundness: 0.4}
       }
     })
+
+    var data = nodes.map(node => {
+      let length = parentsToChildMap[node.id] ? parentsToChildMap[node.id].length : 1;
+      let isVisible = true; //parentsToChildMap[sourceNode.id].find(n => n === node.id) || node.relationImpact === "SOURCE";
+      // return { id: node.id, text: node.displayName, group: node.objectType, relationImpact: node.relationImpact, level: level[node.relationImpact], hidden: !isVisible };
+      return{ id: node.id, text: node.displayName, group: node.objectType, relationImpact: node.relationImpact, level: node.level, hidden: !isVisible};
+    });
 
     // var groups = [];
     // newNodes.forEach(element => {
