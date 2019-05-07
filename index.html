@@ -81,14 +81,14 @@
     let parentsToChildMap = {};
     let childToParentMap = {};
     edges.forEach(e => {
-      if (!parentsToChildMap[e.from]) {
-        parentsToChildMap[e.from] = [];
+      if (!parentsToChildMap[e.calleeId]) {
+        parentsToChildMap[e.calleeId] = [];
       }
-      if (!childToParentMap[e.to]) {
-        childToParentMap[e.to] = [];
+      if (!childToParentMap[e.callerId]) {
+        childToParentMap[e.callerId] = [];
       }
-      childToParentMap[e.to].push(e.from);
-      parentsToChildMap[e.from].push(e.to);
+      childToParentMap[e.callerId].push(e.calleeId);
+      parentsToChildMap[e.calleeId].push(e.callerId);
     })
 
     var data = nodes.map(node => {
@@ -123,8 +123,8 @@
 
     edges.forEach((e, i) => {
       e.id = i;
-      let from = nodesMap[e.from];
-      let to = nodesMap[e.to];
+      let from = nodesMap[e.calleeId];
+      let to = nodesMap[e.callerId];
 
       if (from.level == to.level) {
         e.smooth = {type: 'curvedCW', roundness: 0.4}
@@ -273,7 +273,7 @@
                     parentsArray.push(p);
                   }
                 }
-                let edge = edges.find(e => e.from === p && e.to === child);
+                let edge = edges.find(e => e.calleeId === p && e.callerId === child);
                 if (!colectedEdges.includes(edge.id)) {
                   colectedEdges.push(edge.id);
                 }
@@ -288,7 +288,7 @@
             if (childrens) {
               childrens.forEach(c => {
                 if (!childrenArray.includes(c)) {
-                  let edge = edges.find(e => e.from === parent && e.to === c);
+                  let edge = edges.find(e => e.calleeId === parent && e.callerId === c);
                   colectedEdges.push(edge.id);
                   if(c !== parent) {
                     childrenArray.push(c);
