@@ -81,15 +81,22 @@
     let parentsToChildMap = {};
     let childToParentMap = {};
     edges.forEach(e => {
-      if (!parentsToChildMap[e.calleeId]) {
-        parentsToChildMap[e.calleeId] = [];
+      if (!parentsToChildMap[e.from]) {
+        parentsToChildMap[e.from] = [];
       }
-      if (!childToParentMap[e.callerId]) {
-        childToParentMap[e.callerId] = [];
+      if (!childToParentMap[e.to]) {
+        childToParentMap[e.to] = [];
       }
-      childToParentMap[e.callerId].push(e.calleeId);
-      parentsToChildMap[e.calleeId].push(e.callerId);
+      childToParentMap[e.to].push(e.from);
+      parentsToChildMap[e.from].push(e.to);
     })
+
+    var data = nodes.map(node => {
+      let length = parentsToChildMap[node.id] ? parentsToChildMap[node.id].length : 1;
+      let isVisible = true; //parentsToChildMap[sourceNode.id].find(n => n === node.id) || node.relationImpact === "SOURCE";
+      // return { id: node.id, text: node.displayName, group: node.objectType, relationImpact: node.relationImpact, level: level[node.relationImpact], hidden: !isVisible };
+      return{ id: node.id, text: node.displayName, group: node.objectType, relationImpact: node.relationImpact, level: node.level, hidden: !isVisible};
+    });
 
     let nodesMap = nodes.reduce((m, n) => { m[n.id] = n; return m; }, {});
 
@@ -116,20 +123,13 @@
 
     edges.forEach((e, i) => {
       e.id = i;
-      let from = nodesMap[e.calleeId];
-      let to = nodesMap[e.callerId];
+      let from = nodesMap[e.from];
+      let to = nodesMap[e.to];
 
       if (from.level == to.level) {
         e.smooth = {type: 'curvedCW', roundness: 0.4}
       }
     })
-
-    var data = nodes.map(node => {
-      let length = parentsToChildMap[node.id] ? parentsToChildMap[node.id].length : 1;
-      let isVisible = true; //parentsToChildMap[sourceNode.id].find(n => n === node.id) || node.relationImpact === "SOURCE";
-      // return { id: node.id, text: node.displayName, group: node.objectType, relationImpact: node.relationImpact, level: level[node.relationImpact], hidden: !isVisible };
-      return{ id: node.id, text: node.displayName, group: node.objectType, relationImpact: node.relationImpact, level: node.level, hidden: !isVisible};
-    });
 
     // var groups = [];
     // newNodes.forEach(element => {
@@ -217,7 +217,7 @@
 
     var network = new vis.Network(container, data, options);
     network.fit();
-    // network.stabilize();
+    network.stabilize();
 
 
     network.on("afterDrawing", function (ctx) {
@@ -273,7 +273,7 @@
                     parentsArray.push(p);
                   }
                 }
-                let edge = edges.find(e => e.calleeId === p && e.callerId === child);
+                let edge = edges.find(e => e.from === p && e.to === child);
                 if (!colectedEdges.includes(edge.id)) {
                   colectedEdges.push(edge.id);
                 }
@@ -288,7 +288,7 @@
             if (childrens) {
               childrens.forEach(c => {
                 if (!childrenArray.includes(c)) {
-                  let edge = edges.find(e => e.calleeId === parent && e.callerId === c);
+                  let edge = edges.find(e => e.from === parent && e.to === c);
                   colectedEdges.push(edge.id);
                   if(c !== parent) {
                     childrenArray.push(c);
